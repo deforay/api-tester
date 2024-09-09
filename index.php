@@ -25,6 +25,19 @@
             padding: 20px;
         }
     </style>
+
+    <script>
+        function updateHeaders() {
+            var gzipYes = document.getElementById('gzip_yes').checked;
+            var headersTextarea = document.getElementById('headers');
+
+            if (gzipYes) {
+                headersTextarea.value = "Accept-Encoding: gzip\nContent-Encoding: gzip";
+            } else {
+                headersTextarea.value = ""; // Clear headers if GZIP is 'No'
+            }
+        }
+    </script>
 </head>
 
 <body>
@@ -49,17 +62,22 @@
                         <label for="token" class="form-label">Bearer Token:</label>
                         <input type="text" id="token" name="token" class="form-control" value="<?php echo $_POST['token'] ?? ''; ?>" placeholder="Enter Bearer Token">
                     </div>
-
                     <div class="mb-3">
                         <label class="form-label">Send with GZIP Compression:</label><br>
+
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" id="gzip_yes" name="gzip" value="yes" <?php echo ($_POST['gzip'] ?? 'yes') === 'yes' ? 'checked' : ''; ?>>
-                            <label class="form-check-label" for="gzip_yes">Yes</label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" id="gzip_no" name="gzip" value="no" <?php echo ($_POST['gzip'] ?? 'yes') === 'no' ? 'checked' : ''; ?>>
+                            <input class="form-check-input" type="radio" id="gzip_no" name="gzip" value="no" onclick="updateHeaders()" <?php echo ($_POST['gzip'] ?? 'no') === 'no' ? 'checked' : ''; ?>>
                             <label class="form-check-label" for="gzip_no">No</label>
                         </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" id="gzip_yes" name="gzip" value="yes" onclick="updateHeaders()" <?php echo ($_POST['gzip'] ?? 'no') === 'yes' ? 'checked' : ''; ?>>
+                            <label class="form-check-label" for="gzip_yes">Yes</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="headers" class="form-label">Custom Headers (one per line):</label>
+                        <textarea id="headers" name="headers" class="form-control" rows="5"><?php echo $_POST['headers'] ?? ''; ?></textarea>
                     </div>
 
                     <button type="submit" class="btn btn-primary">Submit</button>
@@ -76,23 +94,20 @@
                         $payload = $_POST['payload'];
                         $token = $_POST['token'];
                         $gzip = $_POST['gzip'];
+                        $headersInput = $_POST['headers'];
+
+                        // Convert headers from textarea to an array
+                        $headersArray = explode("\n", trim($headersInput));
+                        $headersArray = array_filter(array_map('trim', $headersArray)); // Trim and remove empty lines
+
+                        // Append Authorization Bearer token to headers
+                        $headersArray[] = "Authorization: Bearer $token";
 
                         // If GZIP is selected, compress the payload
                         if ($gzip === 'yes') {
                             $gzippedPayload = gzencode($payload);
-                            $headers = [
-                                "Accept-Encoding: gzip",
-                                "Content-Encoding: gzip",
-                                "Content-Type: application/json",
-                                "Authorization: Bearer $token"
-                            ];
                         } else {
                             $gzippedPayload = $payload;
-                            $headers = [
-                                "Accept-Encoding: gzip",
-                                "Content-Type: application/json",
-                                "Authorization: Bearer $token"
-                            ];
                         }
 
                         $curl = curl_init();
@@ -107,7 +122,7 @@
                             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                             CURLOPT_CUSTOMREQUEST => 'POST',
                             CURLOPT_POSTFIELDS => $gzippedPayload,
-                            CURLOPT_HTTPHEADER => $headers,
+                            CURLOPT_HTTPHEADER => $headersArray,
                         ]);
 
                         $response = curl_exec($curl);
@@ -116,7 +131,6 @@
                         curl_close($curl);
 
                         echo "<pre>";
-                        echo "<strong>URL:</strong> $url <br>";
                         echo "<strong>Response Code:</strong> $httpcode <br><br>";
 
                         // Check if the response is JSON and pretty print it
