@@ -65,10 +65,37 @@
             white-space: pre-wrap;
             /* Ensure response text is properly displayed */
         }
+
+        #response-label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: none;
+            /* Hidden by default */
+        }
     </style>
 
     <script>
         const MAX_HISTORY = 25; // Maximum number of history items to store
+
+        function generateUniqueId() {
+            let now = new Date();
+            let year = now.getFullYear().toString();
+            let month = (now.getMonth() + 1).toString().padStart(2, '0'); // Month is zero-indexed, so add 1
+            let day = now.getDate().toString().padStart(2, '0');
+            let hour = now.getHours().toString().padStart(2, '0');
+            let minute = now.getMinutes().toString().padStart(2, '0');
+            let second = now.getSeconds().toString().padStart(2, '0');
+
+            // Combine all to form a unique human-readable datetime ID
+            let dateTimeString = `${year}-${month}-${day}-${hour}-${minute}-${second}`;
+
+            // Generate a random 5-character alphanumeric string
+            let randomString = Math.random().toString(36).substring(2, 8).toUpperCase(); // Generates a random string
+
+            return `${dateTimeString}-${randomString}`;
+        }
+
+
 
         function updateHeaders() {
             var gzipYes = document.getElementById('gzip_yes').checked;
@@ -87,6 +114,7 @@
             // Get form data
             var formData = new FormData(document.getElementById('apiForm'));
             var formObj = {
+                id: generateUniqueId(), // Assign a unique ID
                 url: formData.get('url'),
                 payload: formData.get('payload'),
                 token: formData.get('token'),
@@ -103,6 +131,8 @@
                 if (xhr.status >= 200 && xhr.status < 300) {
                     formObj.response = xhr.responseText; // Store the response in formObj
                     document.querySelector('.response-output').innerHTML = `<pre>${xhr.responseText}</pre>`;
+                    document.getElementById('response-label').innerText = 'Response From Server'; // Label for new response
+                    document.getElementById('response-label').style.display = 'block'; // Show the label
                     saveToLocalStorage(formObj); // Save both request and response
                 } else {
                     document.querySelector('.response-output').innerHTML = `<pre>Error: ${xhr.status}</pre>`;
@@ -144,24 +174,23 @@
 
             historySection.innerHTML = ''; // Clear existing history
 
-            history.forEach((entry, index) => {
+            history.forEach((entry) => {
                 let historyItem = document.createElement('div');
                 historyItem.classList.add('history-item');
 
-                // Display latest entry as the highest number
-                let displayIndex = history.length - index; // Numbering starts from the highest
-
                 historyItem.innerHTML = `
-            <strong>Request ${displayIndex}</strong><br>
+            <strong>Request ID: ${entry.id}</strong><br>
             URL: ${entry.url}<br>
             Payload: ${entry.payload.substring(0, 100)}...<br>
             Token: ${entry.token}<br>
             GZIP: ${entry.gzip}<br>
-            <span class="delete-btn" onclick="deleteHistory(${index})">Delete</span>
+            <span class="delete-btn" onclick="deleteHistory('${entry.id}')">Delete</span>
         `;
                 historyItem.onclick = function() {
                     populateForm(entry);
                     displayResponse(entry.response); // Show response for this history item
+                    document.getElementById('response-label').innerText = 'Response from History ID : ' + entry.id; // Label for history response
+                    document.getElementById('response-label').style.display = 'block'; // Show the label
                 };
 
                 historySection.appendChild(historyItem);
@@ -180,9 +209,9 @@
             document.querySelector('.response-output').innerHTML = `<pre>${response}</pre>`;
         }
 
-        function deleteHistory(index) {
+        function deleteHistory(id) {
             let history = JSON.parse(localStorage.getItem('apiHistory')) || [];
-            history.splice(index, 1); // Remove entry at the given index
+            history = history.filter(item => item.id !== id); // Remove entry with matching ID
             localStorage.setItem('apiHistory', JSON.stringify(history));
             renderHistory(); // Re-render history
         }
@@ -193,7 +222,6 @@
             document.getElementById('history-heading').style.display = 'none'; // Hide the history heading
             document.getElementById('clear-all-btn').style.display = 'none'; // Hide the clear-all button
         }
-
 
         // Render history on page load
         window.onload = function() {
@@ -255,6 +283,7 @@
             <!-- Response Section (Right Half) -->
             <div class="col-md-6 response-section">
                 <h4 class="mb-4">API Response</h4>
+                <div id="response-label">Response Label</div> <!-- Label to indicate New or History response -->
                 <div class="response-output">
                     <!-- Response will be displayed here -->
                 </div>
