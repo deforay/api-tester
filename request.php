@@ -14,11 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $headersArray[] = "Authorization: Bearer $token";
 
     // If GZIP is selected, compress the payload
-    if ($gzip === 'yes') {
-        $gzippedPayload = gzencode($payload);
-    } else {
-        $gzippedPayload = $payload;
-    }
+    $gzippedPayload = ($gzip === 'yes') ? gzencode($payload) : $payload;
 
     $curl = curl_init();
 
