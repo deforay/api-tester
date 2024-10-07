@@ -54,6 +54,17 @@
         .clear-all-btn {
             margin-top: 10px;
         }
+
+        #history-heading,
+        #clear-all-btn {
+            display: none;
+            /* Hidden by default */
+        }
+
+        .response-output {
+            white-space: pre-wrap;
+            /* Ensure response text is properly displayed */
+        }
     </style>
 
     <script>
@@ -80,11 +91,9 @@
                 payload: formData.get('payload'),
                 token: formData.get('token'),
                 gzip: formData.get('gzip'),
-                headers: formData.get('headers')
+                headers: formData.get('headers'),
+                response: '' // Placeholder for response
             };
-
-            // Save form data to localStorage
-            saveToLocalStorage(formObj);
 
             // Send the form data via AJAX
             var xhr = new XMLHttpRequest();
@@ -92,7 +101,9 @@
 
             xhr.onload = function() {
                 if (xhr.status >= 200 && xhr.status < 300) {
+                    formObj.response = xhr.responseText; // Store the response in formObj
                     document.querySelector('.response-output').innerHTML = `<pre>${xhr.responseText}</pre>`;
+                    saveToLocalStorage(formObj); // Save both request and response
                 } else {
                     document.querySelector('.response-output').innerHTML = `<pre>Error: ${xhr.status}</pre>`;
                 }
@@ -118,6 +129,19 @@
         function renderHistory() {
             let history = JSON.parse(localStorage.getItem('apiHistory')) || [];
             let historySection = document.getElementById('history');
+            let historyHeading = document.getElementById('history-heading');
+            let clearAllBtn = document.getElementById('clear-all-btn');
+
+            if (history.length === 0) {
+                historyHeading.style.display = 'none';
+                clearAllBtn.style.display = 'none';
+                return;
+            }
+
+            // Show heading and clear button if history exists
+            historyHeading.style.display = 'block';
+            clearAllBtn.style.display = 'inline-block';
+
             historySection.innerHTML = ''; // Clear existing history
 
             history.forEach((entry, index) => {
@@ -137,19 +161,11 @@
         `;
                 historyItem.onclick = function() {
                     populateForm(entry);
+                    displayResponse(entry.response); // Show response for this history item
                 };
 
                 historySection.appendChild(historyItem);
             });
-
-            // Add a clear-all button
-            let clearAllBtn = document.createElement('button');
-            clearAllBtn.classList.add('btn', 'btn-danger', 'clear-all-btn');
-            clearAllBtn.innerText = "Clear All";
-            clearAllBtn.onclick = function() {
-                clearAllHistory();
-            };
-            historySection.appendChild(clearAllBtn);
         }
 
         function populateForm(data) {
@@ -160,6 +176,10 @@
             document.getElementById('headers').value = data.headers;
         }
 
+        function displayResponse(response) {
+            document.querySelector('.response-output').innerHTML = `<pre>${response}</pre>`;
+        }
+
         function deleteHistory(index) {
             let history = JSON.parse(localStorage.getItem('apiHistory')) || [];
             history.splice(index, 1); // Remove entry at the given index
@@ -168,9 +188,12 @@
         }
 
         function clearAllHistory() {
-            localStorage.removeItem('apiHistory'); // Clear all history
-            renderHistory(); // Re-render history
+            localStorage.removeItem('apiHistory'); // Clear all history from localStorage
+            document.getElementById('history').innerHTML = ''; // Clear the visible history section
+            document.getElementById('history-heading').style.display = 'none'; // Hide the history heading
+            document.getElementById('clear-all-btn').style.display = 'none'; // Hide the clear-all button
         }
+
 
         // Render history on page load
         window.onload = function() {
@@ -224,10 +247,9 @@
                 </form>
 
                 <!-- History Section -->
-                <div class="history-section">
-                    <h5>Request History</h5>
-                    <div id="history"></div>
-                </div>
+                <h5 id="history-heading">Request History</h5>
+                <div id="history"></div>
+                <button id="clear-all-btn" class="btn btn-danger clear-all-btn" onclick="clearAllHistory()">Clear All</button>
             </div>
 
             <!-- Response Section (Right Half) -->
