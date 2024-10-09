@@ -27,6 +27,7 @@
 
         .history-section {
             margin-top: 20px;
+            position: relative;
         }
 
         .history-item {
@@ -52,7 +53,12 @@
         }
 
         .clear-all-btn {
-            margin-top: 10px;
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 12px;
+            padding: 3px 7px;
+            z-index: 1;
         }
 
         #history-heading,
@@ -72,6 +78,12 @@
             display: none;
             /* Hidden by default */
         }
+
+        .gzip-info {
+            font-size: 12px;
+            color: gray;
+            margin-top: 5px;
+        }
     </style>
 
     <script>
@@ -80,7 +92,7 @@
         function generateUniqueId() {
             let now = new Date();
             let year = now.getFullYear().toString();
-            let month = (now.getMonth() + 1).toString().padStart(2, '0'); // Month is zero-indexed, so add 1
+            let month = (now.getMonth() + 1).toString().padStart(2, '0');
             let day = now.getDate().toString().padStart(2, '0');
             let hour = now.getHours().toString().padStart(2, '0');
             let minute = now.getMinutes().toString().padStart(2, '0');
@@ -90,12 +102,10 @@
             let dateTimeString = `${year}-${month}-${day}-${hour}-${minute}-${second}`;
 
             // Generate a random 5-character alphanumeric string
-            let randomString = Math.random().toString(36).substring(2, 8).toUpperCase(); // Generates a random string
+            let randomString = Math.random().toString(36).substring(2, 8).toUpperCase();
 
             return `${dateTimeString}-${randomString}`;
         }
-
-
 
         function updateHeaders() {
             var gzipYes = document.getElementById('gzip_yes').checked;
@@ -122,6 +132,18 @@
                 headers: formData.get('headers'),
                 response: '' // Placeholder for response
             };
+
+            // Check payload size
+            let originalSize = new Blob([formObj.payload]).size;
+            let compressedSize = originalSize;
+            let percentageDecrease = 0;
+            if (formObj.gzip === 'yes') {
+                compressedSize = new Blob([pako.gzip(formObj.payload)]).size;
+                percentageDecrease = ((originalSize - compressedSize) / originalSize * 100).toFixed(2); // Calculate percentage decrease
+            }
+
+            // Update GZIP information
+            document.querySelector('.gzip-info').innerText = `Original Payload size: ${originalSize} bytes, Sending size: ${compressedSize} bytes, Reduction: ${percentageDecrease}%`;
 
             // Send the form data via AJAX
             var xhr = new XMLHttpRequest();
@@ -217,10 +239,12 @@
         }
 
         function clearAllHistory() {
-            localStorage.removeItem('apiHistory'); // Clear all history from localStorage
-            document.getElementById('history').innerHTML = ''; // Clear the visible history section
-            document.getElementById('history-heading').style.display = 'none'; // Hide the history heading
-            document.getElementById('clear-all-btn').style.display = 'none'; // Hide the clear-all button
+            if (confirm('Are you sure you want to clear all history entries?')) {
+                localStorage.removeItem('apiHistory'); // Clear all history from localStorage
+                document.getElementById('history').innerHTML = ''; // Clear the visible history section
+                document.getElementById('history-heading').style.display = 'none'; // Hide the history heading
+                document.getElementById('clear-all-btn').style.display = 'none'; // Hide the clear-all button
+            }
         }
 
         // Render history on page load
@@ -272,12 +296,15 @@
                     </div>
 
                     <button type="submit" class="btn btn-primary">Submit</button>
+                    <div class="gzip-info"></div>
                 </form>
 
                 <!-- History Section -->
-                <h5 id="history-heading">Request History</h5>
-                <div id="history"></div>
-                <button id="clear-all-btn" class="btn btn-danger clear-all-btn" onclick="clearAllHistory()">Clear All</button>
+                <div class="history-section">
+                    <h5 id="history-heading">Request History</h5>
+                    <div id="history"></div>
+                    <button id="clear-all-btn" class="btn btn-danger clear-all-btn" onclick="clearAllHistory()">Clear History</button>
+                </div>
             </div>
 
             <!-- Response Section (Right Half) -->
@@ -293,7 +320,7 @@
 
     <!-- Bootstrap JS and Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script> <!-- Include pako for GZIP compression -->
 </body>
 
 </html>
