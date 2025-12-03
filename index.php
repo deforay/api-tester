@@ -5,105 +5,129 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API Tester</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/franken-ui@2.1.1/dist/css/core.min.css" />
     <style>
+        :root {
+            --bg: #f6f7fb;
+            --text: #0f172a;
+            --muted: #4b5563;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #f8f9fa;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px;
+            font-family: "Inter", "Segoe UI", sans-serif;
         }
 
-        .method-badge {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.6rem;
-            border-radius: 0.375rem;
+        .stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-control,
+        .form-select,
+        textarea {
+            width: 100%;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 10px 12px;
+            background: #fff;
+            font-size: 0.95rem;
+        }
+
+        .form-label {
             font-weight: 600;
-            display: inline-block;
-            text-transform: uppercase;
         }
 
-        .method-GET {
-            background-color: #3b82f6;
-            color: white;
+        .nav {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+            padding: 0;
         }
 
-        .method-POST {
-            background-color: #10b981;
-            color: white;
+        .nav-link {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            background: #f8fafc;
+            padding: 6px 12px;
         }
 
-        .method-PUT {
-            background-color: #f59e0b;
-            color: white;
+        .nav-link.active {
+            background: #111827;
+            color: #fff;
+            border-color: #0f172a;
         }
 
-        .method-DELETE {
-            background-color: #ef4444;
-            color: white;
+        .layout {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+            gap: 16px;
         }
 
-        .method-PATCH {
-            background-color: #14b8a6;
-            color: white;
+        .section {
+            max-width: 1400px;
+            margin: 16px auto 0;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        .card-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 10px;
+            align-items: center;
+        }
+
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .response-output {
             white-space: pre-wrap;
             font-family: 'Courier New', monospace;
-            font-size: 0.875rem;
-            background: #1f2937;
-            color: #f3f4f6;
+            font-size: 0.9rem;
+            background: #0f172a;
+            color: #dbeafe;
             padding: 1rem;
-            border-radius: 0.375rem;
+            border-radius: 10px;
             max-height: 500px;
             overflow: auto;
         }
 
         .json-key {
-            color: #a78bfa;
+            color: #8b5cf6;
         }
 
         .json-value {
-            color: #34d399;
+            color: #22d3ee;
         }
 
         .json-bracket {
             color: #9ca3af;
-        }
-
-        #response-label {
-            display: none;
-        }
-
-        #history-heading,
-        #clear-all-btn {
-            display: none;
-        }
-
-        .history-item {
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .history-item:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .delete-btn {
-            cursor: pointer;
-            color: #ef4444;
-            font-size: 1.1rem;
-            transition: color 0.2s;
-            margin-left: 0.5rem;
-        }
-
-        .delete-btn:hover {
-            color: #dc2626;
-        }
-
-        .gzip-info {
-            font-size: 0.875rem;
-            color: #6b7280;
-            margin-top: 0.5rem;
         }
 
         .json-tree .json-node {
@@ -114,7 +138,6 @@
             cursor: pointer;
             font-family: 'Courier New', monospace;
             font-size: 0.9rem;
-            color: #0f172a;
         }
 
         .json-tree summary::-webkit-details-marker {
@@ -123,7 +146,7 @@
 
         .json-tree .json-children {
             margin-left: 1rem;
-            border-left: 1px dashed #d1d5db;
+            border-left: 1px dashed #e5e7eb;
             padding-left: 0.75rem;
         }
 
@@ -139,6 +162,161 @@
 
         .copy-btn {
             white-space: nowrap;
+        }
+
+        .history-item {
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .history-item:hover {
+            transform: translateY(-1px);
+        }
+
+        #response-label,
+        #history-heading,
+        #clear-all-btn {
+            display: none;
+        }
+
+        .collapse {
+            display: none;
+        }
+
+        .collapse.show {
+            display: block;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .form-row .shrink {
+            flex: 0 0 120px;
+        }
+
+        .form-row .grow {
+            flex: 1 1 0;
+        }
+
+        textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .d-none {
+            display: none !important;
+        }
+
+        .method-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            display: inline-block;
+            text-transform: uppercase;
+            color: #fff;
+        }
+
+        .method-GET {
+            background-color: #3b82f6;
+        }
+
+        .method-POST {
+            background-color: #10b981;
+        }
+
+        .method-PUT {
+            background-color: #f59e0b;
+        }
+
+        .method-DELETE {
+            background-color: #ef4444;
+        }
+
+        .method-PATCH {
+            background-color: #14b8a6;
+        }
+
+        .gzip-info {
+            font-size: 0.875rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .gap-2 {
+            gap: 8px;
+        }
+
+        .gap-3 {
+            gap: 12px;
+        }
+
+        .g-2 {
+            gap: 8px;
+        }
+
+        .mb-2 {
+            margin-bottom: 8px;
+        }
+
+        .mb-3 {
+            margin-bottom: 12px;
+        }
+
+        .mb-4 {
+            margin-bottom: 16px;
+        }
+
+        .mt-2 {
+            margin-top: 8px;
+        }
+
+        .mt-4 {
+            margin-top: 16px;
+        }
+
+        .w-100 {
+            width: 100%;
+        }
+
+        .ms-auto {
+            margin-left: auto;
+        }
+
+        .ms-1 {
+            margin-left: 4px;
+        }
+
+        .ms-2 {
+            margin-left: 8px;
+        }
+
+        .btn-group {
+            display: inline-flex;
+            gap: 6px;
+        }
+
+        .float-end {
+            margin-left: auto;
         }
     </style>
 
@@ -179,10 +357,10 @@
             try {
                 var jsonObj = JSON.parse(payloadTextarea.value);
                 payloadTextarea.value = JSON.stringify(jsonObj, null, 2);
-                validationMessage.innerHTML = '<div class="alert alert-success alert-dismissible fade show" role="alert">✓ JSON formatted successfully<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                validationMessage.innerHTML = '<div class="alert alert-success" role="alert">✓ JSON formatted successfully</div>';
                 setTimeout(() => validationMessage.innerHTML = '', 3000);
             } catch (e) {
-                validationMessage.innerHTML = '<div class="alert alert-danger alert-dismissible fade show" role="alert">⚠ Invalid JSON: ' + e.message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                validationMessage.innerHTML = '<div class="alert alert-danger" role="alert">⚠ Invalid JSON: ' + e.message + '</div>';
             }
         }
 
@@ -191,16 +369,16 @@
             var validationMessage = document.getElementById('json-validation-message');
 
             if (!payloadTextarea.value.trim()) {
-                validationMessage.innerHTML = '<div class="alert alert-warning alert-dismissible fade show" role="alert">⚠ Payload is empty<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                validationMessage.innerHTML = '<div class="alert alert-warning" role="alert">⚠ Payload is empty</div>';
                 return;
             }
 
             try {
                 JSON.parse(payloadTextarea.value);
-                validationMessage.innerHTML = '<div class="alert alert-success alert-dismissible fade show" role="alert">✓ Valid JSON<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                validationMessage.innerHTML = '<div class="alert alert-success" role="alert">✓ Valid JSON</div>';
                 setTimeout(() => validationMessage.innerHTML = '', 3000);
             } catch (e) {
-                validationMessage.innerHTML = '<div class="alert alert-danger alert-dismissible fade show" role="alert">⚠ Invalid JSON: ' + e.message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+                validationMessage.innerHTML = '<div class="alert alert-danger" role="alert">⚠ Invalid JSON: ' + e.message + '</div>';
             }
         }
 
@@ -237,11 +415,13 @@
             var xhr = new XMLHttpRequest();
             xhr.open('POST', 'request.php', true);
 
-            xhr.onload = function() {
+            xhr.onload = function () {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     formObj.response = xhr.responseText;
 
-                    document.getElementById('responseTabs').style.display = 'flex';
+                    const tabs = document.getElementById('responseTabs');
+                    tabs.classList.remove('d-none');
+                    tabs.style.display = 'flex';
                     const viewToggle = document.getElementById('viewToggle');
                     viewToggle.classList.remove('d-none');
                     viewToggle.style.display = 'inline-block';
@@ -284,7 +464,7 @@
                 }
             };
 
-            xhr.onerror = function() {
+            xhr.onerror = function () {
                 document.querySelector('.response-output').innerHTML = '<pre>Request failed</pre>';
             };
 
@@ -327,30 +507,29 @@
                 const collapseId = `collapse-${index}`;
 
                 historyItem.innerHTML = `
-            <div class="card-body py-2">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1" onclick="populateFormFromHistory('${entry.id}')" style="cursor: pointer;">
-                        <span class="method-badge method-${entry.method}">${entry.method}</span>
-                        <span class="fw-bold ms-2">${entry.url.substring(0, 45)}${entry.url.length > 45 ? '...' : ''}</span>
-                        <br>
-                        <small class="text-muted">${entry.id}</small>
+                    <div class="card-body py-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="method-badge method-${entry.method}">${entry.method}</span>
+                            <div class="flex-grow-1" onclick="populateFormFromHistory('${entry.id}')" style="cursor: pointer;">
+                                <div class="fw-bold">${entry.url.substring(0, 70)}${entry.url.length > 70 ? '...' : ''}</div>
+                                <small class="text-muted">${entry.id}</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <button class="uk-btn uk-btn-ghost uk-btn-small" type="button" onclick="event.stopPropagation(); toggleSection('${collapseId}')">
+                                    ℹ️
+                                </button>
+                                <button class="uk-btn uk-btn-destructive uk-btn-small" onclick="event.stopPropagation(); deleteHistory('${entry.id}')">✕</button>
+                            </div>
+                        </div>
+                        <div class="collapse mt-2" id="${collapseId}">
+                            <div class="small text-muted">
+                                <div><strong>Payload:</strong> ${payloadPreview}${entry.payload.length > 50 ? '...' : ''}</div>
+                                <div><strong>Token:</strong> ${tokenPreview}</div>
+                                <div><strong>GZIP:</strong> ${entry.gzip}</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <button class="btn btn-sm btn-link p-0" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseId}" onclick="event.stopPropagation()">
-                            ℹ️
-                        </button>
-                        <span class="delete-btn" onclick="event.stopPropagation(); deleteHistory('${entry.id}')">✕</span>
-                    </div>
-                </div>
-                <div class="collapse mt-2" id="${collapseId}">
-                    <div class="small text-muted">
-                        <div><strong>Payload:</strong> ${payloadPreview}${entry.payload.length > 50 ? '...' : ''}</div>
-                        <div><strong>Token:</strong> ${tokenPreview}</div>
-                        <div><strong>GZIP:</strong> ${entry.gzip}</div>
-                    </div>
-                </div>
-            </div>
-        `;
+                `;
 
                 historySection.appendChild(historyItem);
             });
@@ -375,7 +554,9 @@
                 document.getElementById('response-label').innerText = 'Response from History ID: ' + entry.id;
                 document.getElementById('response-label').style.display = 'block';
 
-                document.getElementById('responseTabs').style.display = 'flex';
+                const tabs = document.getElementById('responseTabs');
+                tabs.classList.remove('d-none');
+                tabs.style.display = 'flex';
                 const viewToggle = document.getElementById('viewToggle');
                 viewToggle.classList.remove('d-none');
                 viewToggle.style.display = 'inline-block';
@@ -554,6 +735,20 @@
             });
         }
 
+        function toggleSection(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('show');
+        }
+
+        function setTab(tabId) {
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.toggle('active', pane.id === tabId);
+            });
+            document.querySelectorAll('#responseTabs .nav-link').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.target === tabId);
+            });
+        }
+
         function countJsonNodes(value) {
             let count = 1;
             if (Array.isArray(value)) {
@@ -570,7 +765,7 @@
             return count;
         }
 
-        window.onload = function() {
+        window.onload = function () {
             renderHistory();
         };
     </script>
@@ -578,129 +773,128 @@
 
 <body>
 
-    <div class="container-fluid py-4">
-        <div class="row g-3">
-            <!-- Form Section -->
-            <div class="col-md-6">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">API Request</h5>
-                        <form id="apiForm" onsubmit="submitForm(event)">
-                            <div class="mb-3">
-                                <div class="row g-2">
-                                    <div class="col-3">
-                                        <select id="method" name="method" class="form-select">
-                                            <option value="GET">GET</option>
-                                            <option value="POST" selected>POST</option>
-                                            <option value="PUT">PUT</option>
-                                            <option value="PATCH">PATCH</option>
-                                            <option value="DELETE">DELETE</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-9">
-                                        <input type="text" id="url" name="url" class="form-control" placeholder="Enter API URL">
-                                    </div>
-                                </div>
+    <div class="layout">
+        <!-- Form Section -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">API Request</h5>
+                <form id="apiForm" class="stack" onsubmit="submitForm(event)">
+                    <div>
+                        <div class="form-grid">
+                            <div>
+                                <select id="method" name="method" class="form-select">
+                                    <option value="GET">GET</option>
+                                    <option value="POST" selected>POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="PATCH">PATCH</option>
+                                    <option value="DELETE">DELETE</option>
+                                </select>
                             </div>
-
-                            <div class="mb-3">
-                                <button class="btn btn-outline-secondary btn-sm w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#authSection">
-                                    🔒 Authentication
-                                    <span class="float-end">▼</span>
-                                </button>
-                                <div id="authSection" class="collapse mt-2">
-                                    <input type="text" id="token" name="token" class="form-control" placeholder="Bearer Token">
-                                </div>
+                            <div>
+                                <input type="text" id="url" name="url" class="form-control" placeholder="Enter API URL">
                             </div>
-
-                            <div class="mb-3">
-                                <button class="btn btn-outline-secondary btn-sm w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#headersSection">
-                                    📋 Headers
-                                    <span class="float-end">▼</span>
-                                </button>
-                                <div id="headersSection" class="collapse mt-2">
-                                    <textarea id="headers" name="headers" class="form-control" rows="3" placeholder="Header: Value (one per line)"></textarea>
-                                    <div class="form-check mt-2">
-                                        <input class="form-check-input" type="checkbox" id="gzip_yes" name="gzip" value="yes" onclick="updateHeaders()">
-                                        <label class="form-check-label small" for="gzip_yes">
-                                            Enable GZIP Compression
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">
-                                    Payload
-                                    <button type="button" class="btn btn-link btn-sm p-0 ms-2" onclick="formatJSON()">Format</button>
-                                    <button type="button" class="btn btn-link btn-sm p-0 ms-1" onclick="validateJSON()">Validate</button>
-                                </label>
-                                <textarea id="payload" name="payload" class="form-control" rows="10" placeholder="Enter JSON payload"></textarea>
-                                <div id="json-validation-message" class="mt-2"></div>
-                                <div class="gzip-info"></div>
-                            </div>
-
-                            <button type="submit" class="btn btn-primary w-100">
-                                ▶️ Send Request
-                            </button>
-                        </form>
-
-                        <div class="mt-4" style="position: relative;">
-                            <h5 id="history-heading">History</h5>
-                            <button id="clear-all-btn" class="btn btn-danger btn-sm" onclick="clearAllHistory()" style="position: absolute; top: 0; right: 0;">Clear All</button>
-                            <div id="history"></div>
                         </div>
                     </div>
-                </div>
+
+                    <div>
+                        <label class="form-label">Authentication (Bearer Token)</label>
+                        <input type="text" id="token" name="token" class="form-control" placeholder="Bearer Token">
+                    </div>
+
+                    <div>
+                        <button class="uk-btn uk-btn-default uk-width-1-1" type="button"
+                            onclick="toggleSection('headersSection')">
+                            📋 Headers
+                            <span class="float-end">▼</span>
+                        </button>
+                        <div id="headersSection" class="collapse mt-2">
+                            <textarea id="headers" name="headers" class="form-control" rows="3"
+                                placeholder="Header: Value (one per line)"></textarea>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="gzip_yes" name="gzip" value="yes"
+                                    onclick="updateHeaders()">
+                                <label class="form-check-label small" for="gzip_yes">
+                                    Enable GZIP Compression
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label d-flex align-items-center gap-2 mb-2">
+                            <span>Payload</span>
+                            <span>
+                                <button type="button" class="uk-btn uk-btn-link uk-padding-remove uk-margin-small-left"
+                                    onclick="formatJSON()">Format</button>
+                                <button type="button" class="uk-btn uk-btn-link uk-padding-remove uk-margin-small-left"
+                                    onclick="validateJSON()">Validate</button>
+                            </span>
+                        </label>
+                        <textarea id="payload" name="payload" class="form-control" rows="10"
+                            placeholder="Enter JSON payload"></textarea>
+                        <div id="json-validation-message" class="mt-2"></div>
+                        <div class="gzip-info"></div>
+                    </div>
+
+                    <button type="submit" class="uk-btn uk-btn-primary uk-width-1-1">
+                        Send Request
+                    </button>
+                </form>
             </div>
+        </div>
 
-            <!-- Response Section -->
-            <div class="col-md-6">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">API Response</h5>
-                        <div id="response-label" class="fw-bold mb-2"></div>
+        <!-- Response Section -->
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title mb-3">API Response</h5>
+                <div id="response-label" class="fw-bold mb-2"></div>
 
-                        <ul id="responseTabs" class="nav nav-tabs d-none" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#bodyTab" type="button">Body</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#headersTab" type="button">Headers</button>
-                            </li>
-                            <li class="nav-item ms-auto">
-                                <button class="btn btn-primary btn-sm" onclick="copyResponse()">
-                                    📋 Copy
-                                </button>
-                            </li>
-                        </ul>
+                <ul id="responseTabs" class="nav d-none" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" data-target="bodyTab" type="button"
+                            onclick="setTab('bodyTab')">Body</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" data-target="headersTab" type="button"
+                            onclick="setTab('headersTab')">Headers</button>
+                    </li>
+                    <li class="nav-item ms-auto">
+                        <button class="uk-btn uk-btn-primary uk-btn-small" onclick="copyResponse()">
+                            📋 Copy
+                        </button>
+                    </li>
+                </ul>
 
-                        <div class="tab-content mt-2">
-                            <div class="tab-pane fade show active" id="bodyTab" role="tabpanel">
-                                <div id="response-metadata">
-                                    <!-- Response metadata will be displayed here -->
-                                </div>
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <div id="viewToggle" class="btn-group btn-group-sm d-none" role="group">
-                                        <button type="button" class="btn btn-outline-secondary active" data-view="pretty" onclick="setView('pretty')">Pretty</button>
-                                        <button type="button" class="btn btn-outline-secondary" data-view="tree" onclick="setView('tree')">Tree</button>
-                                        <button type="button" class="btn btn-outline-secondary" data-view="raw" onclick="setView('raw')">Raw</button>
-                                    </div>
-                                    <div class="btn-group btn-group-sm tree-tools" role="group">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="toggleAllTreeNodes(true)">Expand All</button>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="toggleAllTreeNodes(false)">Collapse All</button>
-                                    </div>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm copy-btn" onclick="copyCurrentView()">Copy View</button>
-                                </div>
-                                <div class="response-output">
-                                    <!-- Response will be displayed here -->
-                                </div>
+                <div class="tab-content mt-2">
+                    <div class="tab-pane active" id="bodyTab" role="tabpanel">
+                        <div id="response-metadata">
+                            <!-- Response metadata will be displayed here -->
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div id="viewToggle" class="btn-group btn-group-sm d-none" role="group">
+                                <button type="button" class="uk-btn uk-btn-default uk-btn-small active"
+                                    data-view="pretty" onclick="setView('pretty')">Pretty</button>
+                                <button type="button" class="uk-btn uk-btn-default uk-btn-small" data-view="tree"
+                                    onclick="setView('tree')">Tree</button>
+                                <button type="button" class="uk-btn uk-btn-default uk-btn-small" data-view="raw"
+                                    onclick="setView('raw')">Raw</button>
                             </div>
-                            <div class="tab-pane fade" id="headersTab" role="tabpanel">
-                                <div class="response-headers" style="max-height: 500px; overflow: auto;">
-                                    <!-- Headers will be displayed here -->
-                                </div>
+                            <div class="btn-group btn-group-sm tree-tools" role="group">
+                                <button type="button" class="uk-btn uk-btn-default uk-btn-small"
+                                    onclick="toggleAllTreeNodes(true)">Expand All</button>
+                                <button type="button" class="uk-btn uk-btn-default uk-btn-small"
+                                    onclick="toggleAllTreeNodes(false)">Collapse All</button>
                             </div>
+                            <button type="button" class="uk-btn uk-btn-default uk-btn-small copy-btn"
+                                onclick="copyCurrentView()">Copy View</button>
+                        </div>
+                        <div class="response-output">
+                            <!-- Response will be displayed here -->
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="headersTab" role="tabpanel">
+                        <div class="response-headers" style="max-height: 500px; overflow: auto;">
+                            <!-- Headers will be displayed here -->
                         </div>
                     </div>
                 </div>
@@ -708,7 +902,19 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="section">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-2">
+                    <h5 id="history-heading" class="mb-0">History</h5>
+                    <button id="clear-all-btn" class="uk-btn uk-btn-destructive uk-btn-small ms-auto" onclick="clearAllHistory()">Clear
+                        All</button>
+                </div>
+                <div id="history"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.0.4/pako.min.js"></script>
 </body>
 
